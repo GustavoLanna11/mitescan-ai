@@ -16,7 +16,7 @@ model = MiteScanCNN()
 dummy_input = torch.randn(1, 3, 224, 224)
 model(dummy_input)
 
-model.load_state_dict(torch.load("model.pth"))
+model.load_state_dict(torch.load("outputs/best_model.pth"))
 model.eval()
 
 img = Image.open("teste.jpg").convert("RGB")
