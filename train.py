@@ -5,6 +5,9 @@ from model.cnn import MiteScanCNN
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import numpy as np
 
 # transformação
 transform = transforms.Compose([
@@ -42,10 +45,8 @@ for epoch in range(20):
 
     for images, labels in train_loader:
         optimizer.zero_grad()
-
         outputs = model(images)
         loss = criterion(outputs, labels)
-
         loss.backward()
         optimizer.step()
 
@@ -56,7 +57,7 @@ for epoch in range(20):
     train_acc = correct / total
     train_acc_list.append(train_acc)
 
-    # validação
+# validação
     model.eval()
     correct = 0
     total = 0
@@ -74,7 +75,7 @@ for epoch in range(20):
 
     print(f"Epoch {epoch+1} | Train Acc: {train_acc:.2f} | Val Acc: {val_acc:.2f}")
 
-    # salvar melhor modelo
+# salvar melhor modelo
     if val_acc > best_val_acc:
         best_val_acc = val_acc
         torch.save(model.state_dict(), "best_model.pth")
@@ -89,4 +90,33 @@ plt.title("Training vs Validation Accuracy")
 plt.legend()
 
 plt.savefig("training_graph.png")
+plt.show()
+
+model.eval()
+
+all_preds = []
+all_labels = []
+
+with torch.no_grad():
+    for images, labels in val_loader:
+        outputs = model(images)
+        _, preds = torch.max(outputs, 1)
+
+        all_preds.extend(preds.cpu().numpy())
+        all_labels.extend(labels.cpu().numpy())
+
+cm = confusion_matrix(all_labels, all_preds)
+
+class_names = train_data.classes
+
+plt.figure(figsize=(6,5))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=class_names,
+            yticklabels=class_names)
+
+plt.xlabel("Predicted")
+plt.ylabel("True")
+plt.title("Confusion Matrix")
+
+plt.savefig("confusion_matrix.png")
 plt.show()
