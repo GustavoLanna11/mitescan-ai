@@ -4,18 +4,23 @@ from torch.utils.data import DataLoader
 from model.cnn import MiteScanCNN
 import torch.nn as nn
 import torch.optim as optim
+import matplotlib.pyplot as plt
 
 # transformação
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.RandomHorizontalFlip(),
-    transforms.RandomRotation(10),
+    transforms.RandomRotation(15),
+    transforms.ColorJitter(brightness=0.2, contrast=0.2),
     transforms.ToTensor()
 ])
 
 # dataset
 train_data = datasets.ImageFolder("dataset/train", transform=transform)
+val_data = datasets.ImageFolder("dataset/val", transform=transform)
+
 train_loader = DataLoader(train_data, batch_size=8, shuffle=True)
+val_loader = DataLoader(val_data, batch_size=8, shuffle=False)
 
 # modelo
 model = MiteScanCNN()
@@ -23,10 +28,19 @@ model = MiteScanCNN()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
+# listas para gráfico
+train_acc_list = []
+val_acc_list = []
+
+best_val_acc = 0
+
 # treino
 for epoch in range(20):
-    for images, labels in train_loader:
+    model.train()
+    correct = 0
+    total = 0
 
+    for images, labels in train_loader:
         optimizer.zero_grad()
 
         outputs = model(images)
@@ -35,7 +49,44 @@ for epoch in range(20):
         loss.backward()
         optimizer.step()
 
-    print(f"Epoch {epoch} finalizada")
+        _, predicted = torch.max(outputs, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
 
-# salvar
-torch.save(model.state_dict(), "model.pth")
+    train_acc = correct / total
+    train_acc_list.append(train_acc)
+
+    # validação
+    model.eval()
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for images, labels in val_loader:
+            outputs = model(images)
+            _, predicted = torch.max(outputs, 1)
+
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    val_acc = correct / total
+    val_acc_list.append(val_acc)
+
+    print(f"Epoch {epoch+1} | Train Acc: {train_acc:.2f} | Val Acc: {val_acc:.2f}")
+
+    # salvar melhor modelo
+    if val_acc > best_val_acc:
+        best_val_acc = val_acc
+        torch.save(model.state_dict(), "best_model.pth")
+
+# gráfico
+plt.plot(train_acc_list, label="Train Accuracy")
+plt.plot(val_acc_list, label="Validation Accuracy")
+
+plt.xlabel("Epoch")
+plt.ylabel("Accuracy")
+plt.title("Training vs Validation Accuracy")
+plt.legend()
+
+plt.savefig("training_graph.png")
+plt.show()
