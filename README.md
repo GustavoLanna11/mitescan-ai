@@ -33,9 +33,51 @@ mitescan-ai/
 │
 ├── train.py
 ├── predict.py
-├── model.pth
-└── README.md
+├── outputs/
+│ ├── best_model.pth
+│ ├── training_graph.png
+│ └── confusion_matrix.png
+│
+├── README.md
 ```
+
+---
+
+## 📊 Outputs e Métricas
+
+Durante o treinamento, o sistema gera automaticamente arquivos de saída na pasta outputs/:
+
+📁 Arquivos gerados
+- best_model.pth → modelo treinado com melhor desempenho na validação
+- training_graph.png → gráfico de acurácia (treino vs validação)
+- confusion_matrix.png → matriz de confusão das previsões
+
+---
+
+## 📈 Gráfico de Treinamento
+
+Gerado com a biblioteca Matplotlib, mostra a evolução da acurácia ao longo das épocas:
+
+- Linha azul → acurácia de treino
+- Linha laranja → acurácia de validação
+
+Permite identificar:
+
+- aprendizado do modelo
+- overfitting
+- estabilidade do treinamento
+
+---
+
+## 🔍 Matriz de Confusão
+
+Gerada com Seaborn + Scikit-learn, permite visualizar:
+
+- acertos por classe
+- erros de classificação
+- confusão entre categorias (ex: varroa vs normal)
+
+Os valores são normalizados (0 a 1), representando porcentagens.
 
 ---
 
@@ -50,7 +92,7 @@ O fluxo da IA é dividido em três partes principais:
 - Executa o treinamento da rede neural
 - Calcula o erro da previsão
 - Ajusta os pesos com **backpropagation**
-- Salva o modelo treinado em `model.pth`
+- Salva o modelo treinado em `outputs/best_model.pth`
 
 ---
 
@@ -75,7 +117,7 @@ A rede aprende padrões como:
 
 - Recebe uma imagem nova
 - Aplica o mesmo pré-processamento do treino
-- Carrega o modelo treinado (`model.pth`)
+- Carrega o modelo treinado (`best_model.pth`)
 - Retorna a classificação com base nos padrões aprendidos
 
 ---
@@ -93,6 +135,9 @@ Imagem → Tensor → CNN → Probabilidades → Classe
 - PyTorch  
 - Torchvision  
 - Pillow  
+- Matplotlib  
+- Seaborn  
+- Scikit-learn  
 
 ---
 
