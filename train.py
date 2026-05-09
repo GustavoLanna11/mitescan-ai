@@ -42,7 +42,7 @@ val_acc_list = []
 best_val_acc = 0
 
 # treino
-for epoch in range(20):
+for epoch in range(50):
     model.train()
     correct = 0
     total = 0
